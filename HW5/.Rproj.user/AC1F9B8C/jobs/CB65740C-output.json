@@ -1,0 +1,5 @@
+[1,"Installing 'fmsb' ...\r\n"]
+[1,"\r\n"]
+[2,"Installing package into 'C:/Users/brise/Documents/R/win-library/4.0'\r\n(as 'lib' is unspecified)\r\n"]
+[2,"Warning: unable to access index for repository https://cran.rstudio.com/src/contrib:\r\n  cannot open URL 'https://cran.rstudio.com/src/contrib/PACKAGES'\r\n"]
+[2,"\r\n\r\n<U+2714> Package 'fmsb' successfully installed.\r\nWarning message:\r\npackage 'fmsb' is not available (for R version 4.0.2) \r\n"]

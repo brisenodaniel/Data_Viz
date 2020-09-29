@@ -1,0 +1,6 @@
+"0","hist(age)
+
+hist(age, seq(0,9,1.5))
+"
+"0",""
+"0","plot(density(age,na.rm=TRUE))"

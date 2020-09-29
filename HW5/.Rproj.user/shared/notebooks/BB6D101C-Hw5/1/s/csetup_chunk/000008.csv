@@ -1,0 +1,19 @@
+"0","knitr::opts_chunk$set(echo = TRUE)
+require(DAAG)
+attach(possum)
+"
+"2","The following objects are masked from possum (pos = 3):
+
+    age, belly, case, chest, earconch, eye, footlgth, hdlngth, Pop, sex, site, skullw, taill, totlngth
+
+"
+"2","The following objects are masked from possum (pos = 4):
+
+    age, belly, case, chest, earconch, eye, footlgth, hdlngth, Pop, sex, site, skullw, taill, totlngth
+
+"
+"2","The following objects are masked from possum (pos = 5):
+
+    age, belly, case, chest, earconch, eye, footlgth, hdlngth, Pop, sex, site, skullw, taill, totlngth
+
+"

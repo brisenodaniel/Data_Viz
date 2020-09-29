@@ -1,0 +1,14 @@
+require(dplyr)
+
+starwars %>%
+  group_by(species) %>%
+  filter(n()>=3)%>%
+  print(n=Inf)
+  
+  
+df = starwars %>% 
+  mutate( homeworld_species = paste(starwars$homeworld, starwars$species, sep = "_")) %>%
+  group_by(homeworld_species)
+
+df = df
+

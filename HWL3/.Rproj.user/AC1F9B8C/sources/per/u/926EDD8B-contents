@@ -1,0 +1,8 @@
+ccA = read.csv("./data/countrycharsA.csv")
+ccB = read.csv("./data/countrycharsB.csv")
+gdp = read.csv("./data/gdp.csv")
+ccAB = rbind(ccA,ccB)
+ccAB_gdp = cbind(ccAB, gdp)
+
+
+ccAB = rbind(ccA,ccB)

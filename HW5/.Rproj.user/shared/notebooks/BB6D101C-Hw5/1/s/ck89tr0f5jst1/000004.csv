@@ -1,0 +1,4 @@
+"0","pairs(~age+hdlngth+skullw+totlngth+taill+footlgth+earconch+eye+chest+belly, data=possum)
+plot(hdlngth,skullw)
+"
+"0","points(mean(hdlngth),mean(skullw),pch=2,col=""red"")"

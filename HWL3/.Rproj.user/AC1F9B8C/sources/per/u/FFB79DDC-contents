@@ -1,0 +1,8 @@
+require(dplyr)
+head(starwars)
+nrow(starwars)
+colnames(starwars)
+
+ss1 = select(starwars, height, gender)
+ss2 = starwars %>%
+  select(height,gender)
