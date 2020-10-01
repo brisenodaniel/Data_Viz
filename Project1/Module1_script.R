@@ -43,6 +43,22 @@ boxplot((m_nsmoker$TIP/m_nsmoker$TOTBILL), (f_nsmoker$TIP/f_nsmoker$TOTBILL),
         names=c("mns","fns"))
 
 
+med <- median(TIP)
 
+tipsD = tips_df[TIME == 0,]
+tipsN = tips_df[TIME == 1,]
+
+thurD =tipsD[tipsD$DAY==3,]$TIP
+thurN = tipsN[tipsN$DAY==3,]$TIP
+friD = tipsD[tipsD$DAY==4,]$TIP
+
+friN = tipsN[tipsN$DAY==4,]$TIP
+satD = tipsD[tipsD$DAY==5,]$TIP
+satN = tipsN[tipsN$DAY==5,]$TIP
+sunD = tipsN[tipsD$DAY==6,]$TIP
+sunN = tipsN[tipsN$DAY==6,]$TIP
+
+thurD
+boxplot(thurD,thurN,friD,friN,satD,satN,sunD,sunN,at=c(1,2,4,5,7,8,10,11))
 
 
