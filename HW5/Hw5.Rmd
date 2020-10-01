@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "HW Lecture 5"
 author: "Daniel Briseno Servin"
 date: "9/28/2020"
 output:
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 require(DAAG)
 attach(possum)
 ```
-# HW Lecture 5 #
+
 
 ## Question 1 ##
 ```{r q1}
@@ -23,7 +23,7 @@ hist(age, seq(0,9,1.5))
 plot(density(age,na.rm=TRUE))
 ```
 
-The dramatic difference between the first histogram and the second could be due to the first histogram having bin sizes that are too big. If we cut according to (0,2,4,...), then we see that in the 0-2 bin there is a large amount samples in that bin. This can give us the misconception that the data appears to be clustered in the lower extreme values. However, by reducing the bin size by 0.5 we can see that there are relatively few samples in the 0-0.15 bin, a feature of the data which remained hidden in the first histogram.
+The dramatic difference between the first histogram and the second could be due to the first histogram having bin sizes that are too big. If we cut according to (0,2,4,...), then we see that in the 0-2 bin there is a large amount samples. This can give us the misconception that the data appears to be clustered in the lower extreme values. However, by reducing the bin size by 0.5 we can see that there are relatively few samples in the 0-0.15 bin, a feature of the data which remained hidden in the first histogram.
 
 The advantages of using the kernel density estimate is that it more clearly shows trends in the data. The trade-off is that you lose the finer-grained categorical picture shown in the histogram, which can lead a researcher to observe "trends" in the data which could be an artifact of the bandwith rather than a real trend.
 

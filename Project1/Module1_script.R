@@ -19,8 +19,6 @@ m_nsmoker = tips_df[SEX==0 & SMOKER==0,]
 f_nsmoker = tips_df[SEX==1 & SMOKER==0,]
 
 
-pairs(~smoker$TIP+smoker$TOTBILL+n_smoker$TIP+smoker$TOTBILL)
-
 
 plot(smoker$TIP, smoker$TOTBILL)
 plot(n_smoker$TIP, n_smoker$TOTBILL)
@@ -43,7 +41,7 @@ boxplot((m_smoker$TIP/m_smoker$TOTBILL),(f_smoker$TIP/f_smoker$TOTBILL),
 
 boxplot((m_nsmoker$TIP/m_nsmoker$TOTBILL), (f_nsmoker$TIP/f_nsmoker$TOTBILL), 
         names=c("mns","fns"))
-        
+
 
 
 
