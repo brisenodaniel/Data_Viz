@@ -72,7 +72,7 @@ boxplot((female$TIP/female$TOTBILL),(male$TIP/male$TOTBILL),
         names=c("female",'male'), main= "% Tip of Females vs Males") 
 ```
 
-We can see in the plots above, that both males and females tip with similar habits. There is a positive, linear relationship between tips and total bill for both sexes. Interestingly, it seems as though females are morre likely going to tip slighly higher than men as the spreead of their inter quartile range is slighlty higher than the male category.
+We can see in the plots above, that both males and females tip with similar habits. There is a positive, linear relationship between tips and total bill for both sexes. Interestingly, it seems as though females are more likely going to tip slightly higher than men as the spread of their inter quartile range is slightly higher than the male category.
 
 After examining males vs females and smokers vs non-smokers, we can go further in depth and look at a combination of both.
 
@@ -103,7 +103,7 @@ boxplot((m_nsmoker$TIP/m_nsmoker$TOTBILL), (f_nsmoker$TIP/f_nsmoker$TOTBILL),
 ```
 
 
-We find interesting differnces in the above graphs. First, by looking at smokers, we can see that females will more consistently tip higher than men. The median percent of men is 15% while it is about 18% for women. On the other hand, for non-smokers, we see that men have a higher tipping rate than women.  
+We find interesting differences in the above graphs. First, by looking at smokers, we can see that females will more consistently tip higher than men. The median percent of men is 15% while it is about 18% for women. On the other hand, for non-smokers, we see that men have a higher tipping rate than women.  
 
 
 ### Research Question 2: 
@@ -126,6 +126,7 @@ for(i in 1:ncol(tips_df)){
 outliers <- boxplot((tips_df$TIP), plot=FALSE)$out
 tips_df <- tips_df[-which((tips_df$TIP) %in% outliers),]
 # $TOTBILL) %in% outliers),]
+
 
 
 
@@ -162,13 +163,13 @@ legend("topleft", legend = c("Day Shift","Night Shift"),
 ```
 
 
-The above boxplots tell us which shifts are optimal for if you desire to earn the most tips. This does not take into account the total bill amount, because if a server soley cares about tips, they will care less about how generous of a tip a party gives and more about the total tips they are able to generate during their shift, reguardless of how much a party's total bill is. 
+The above boxplots tell us which shifts are optimal for if you desire to earn the most tips. This does not take into account the total bill amount, because if a server solely cares about tips, they will care less about how generous of a tip a party gives and more about the total tips they are able to generate during their shift, regardless of how much a party's total bill is. 
 
 It appears that the largest range, and total highest tips, comes in mostly on weekend nights. However, Friday and Saturday days have a higher median, but much lower maximum tips compared to their respective nights. This higher range of tips makes sense because people drink more on weekends. As we saw above, smokers, who are commonly associated with drinkers, have a larger spread of tip percentages and will often tip higher than non smokers.
 
-The overall higher averges on weekends than weekday may be attributed to, aside from drinking, larger parties or more expensive means on weekends. Both of these contribute to larger total bills, which as we saw in our previous research question in our initial analysis, larger bill equate to larger tips.
+The overall higher averages on weekends than weekday may be attributed to, aside from drinking, larger parties or more expensive means on weekends. Both of these contribute to larger total bills, which as we saw in our previous research question in our initial analysis, larger bill equate to larger tips.
 
-Ultimately, as a server, if you are looking at the opportunity to make high tips while still guarunteeing a decent tip, Sunday night would be best, followed by Friday night. However, if you are looking for consistency in tipping, you will want to be scheduled for Thursday night or Saturday day as the spread is much tighter, but the median is much higher.
+Ultimately, as a server, if you are looking at the opportunity to make high tips while still guaranteeing a decent tip, Sunday night would be best, followed by Friday night. However, if you are looking for consistency in tipping, you will want to be scheduled for Thursday night or Saturday day as the spread is much tighter, but the median is much higher.
 
 
 
