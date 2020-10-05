@@ -18,15 +18,21 @@ attach(tips_df)
 
 **Examine the association between the total bill and tip.** 
 
-How does this relationship change based on sex, smoker status, and the combination of the two (i.e. male smokers, female non-smokers, etc.)?
+*How does this relationship change based on sex, smoker status, and the combination of the two (i.e. male smokers, female non-smokers, etc.)?*
+
 
 ```{r pressure, echo = FALSE}
-plot(TIP,TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "The Association between Tips and Total Bill")
+outliers <- boxplot(tips_df$TIP/tips_df$TOTBILL, plot=FALSE)$out
+tips_df <- tips_df[-which((tips_df$TIP/tips_df$TOTBILL) %in% outliers),]
+plot(tips_df$TIP,tips_df$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "The Association between Tips and Total Bill")
+
+
 ```
 
 
-We can see based on the "The Relationship between Tips and Total Bill" plot, seen above, that there is positive relationship between the amount of a tip and the total bill. This makes sense because tippers will generally tip somewhere around 15-20% of their total bill, so as their bill increases, their tip should too.
+"The Relationship between Tips and Total Bill" plot, seen above, shows a positive relationship between the tip amount and the total bill. This makes sense because people will generally tip somewhere around 15-20% of their total bill, so as their bill increases, their tip should too.
 
+We can now look more in depth and see how this relationship changes based on smoking status and sex.
 
 
 ```{r, echo = FALSE}
@@ -39,17 +45,36 @@ par(mfrow=c(1,2), oma=c(0,0,2,0))
 smoker_plot = plot(smoker$TIP, smoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main= "Smokers")
 n_smoker_plot = plot(n_smoker$TIP, n_smoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main= "Non-Smokers")
 title("The Association between Tips and Total Bill Based on Smoking Status",outer = TRUE)
+```
+```{r, echo = FALSE}
+boxplot((smoker$TIP/smoker$TOTBILL),(n_smoker$TIP/n_smoker$TOTBILL),
+        names=c("smoker","nonsmoker"),main= "% Tip of Smokers vs Non-Smokers") 
+```
+
+
+
+In the above plots, we examine this positive relationship between tips and total bill based on smoking status. As seen in the scatter plot, when separating by these groups, there is a strong, positive correlation between tip amount and total bill for the non-smoking group. However, it seems as though that relationship is less clear in the smoking group. This could be because smoking is often associated with drinking. The relationship in the smoking group is less linear. We can also see in the box plot that the median tip percent of both the smokers and non-smokers is very similar, but the spread is much different. Non-smokers tip percent is much more consistent, while with smokers, you are likely to get a wider range of tips.
+
+
+Next, we will take the same approach, but examine tipping habits based on sex.
+
+
+```{r, echo = FALSE}
 
 par(mfrow=c(1,2), oma=c(0,0,2,0))
 female_plot = plot(female$TIP, female$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main= "Females")
 male_plot = plot(male$TIP, male$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main= "Males")
-title("The Association between Tips and Total Bill Based on Gender",outer = TRUE)
-
+title("The Association between Tips and Total Bill Based on Sex",outer = TRUE)
 ```
 
+```{r, echo = FALSE}
+boxplot((female$TIP/female$TOTBILL),(male$TIP/male$TOTBILL),
+        names=c("female",'male'), main= "% Tip of Females vs Males") 
+```
 
-In the above plots, it looks as though when separated between different groups based on either smoking status or gender, there remains a positive relationship between tip amount and total bill. However, it seems as though that relationship is less clear in the smoking group. This could be because smoking is often associated with drinking. 
+We can see in the plots above, that both males and females tip with similar habits. There is a positive, linear relationship between tips and total bill for both sexes. Interestingly, it seems as though females are morre likely going to tip slighly higher than men as the spreead of their inter quartile range is slighlty higher than the male category.
 
+After examining males vs females and smokers vs non-smokers, we can go further in depth and look at a combination of both.
 
 ```{r, echo = FALSE}
 m_smoker = tips_df[SEX==0 & SMOKER==1,]
@@ -57,45 +82,53 @@ f_smoker = tips_df[SEX==1 & SMOKER==1,]
 m_nsmoker = tips_df[SEX==0 & SMOKER==0,]
 f_nsmoker = tips_df[SEX==1 & SMOKER==0,]
 
-par(mfrow=c(2,2), oma = c(0,0,2,0))
-plot(m_smoker$TIP, m_smoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Male Smokers")
-plot(f_smoker$TIP, f_smoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Female Smokers")
-plot(m_nsmoker$TIP, m_nsmoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Male Non-Smokers")
-plot(f_nsmoker$TIP, f_nsmoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Female Non-Smokers")
-title("The Association between Tips and Total Bill Among Different Groups",outer = TRUE)
+par(mfrow=c(1,2), oma = c(4,4,2,0))
+plot(m_smoker$TIP, m_smoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Male")
+plot(f_smoker$TIP, f_smoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Female")
+title("Association between Tips and Bill Among Smokers based on Sex",outer = TRUE)
+
+par(mfrow=c(1,2), oma = c(4,4,2,0))
+plot(m_nsmoker$TIP, m_nsmoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Male")
+plot(f_nsmoker$TIP, f_nsmoker$TOTBILL, xlab = "Tip Amount", ylab = "Total Bill", main = "Female")
+title("Association between Tips and Bill of Non-Smokers based on Sex",outer = TRUE)
 ```
-
-Looking at the above graphs, it appears, again, that non-smokers have the most consistent tipping habits: the higher the bill, the more they tip. It appears that females are more likely to tip at a consistent rate, while males may taper off their tipping a bit the higher that the bill gets.
-
-
-```{r, echo = FALSE}
-boxplot((smoker$TIP/smoker$TOTBILL),(n_smoker$TIP/n_smoker$TOTBILL),
-        names=c("smoker","nonsmoker"),outline=FALSE, main= "Percent of Tip to Total Bill of Smokers vs Non-Smokers") 
-boxplot((female$TIP/female$TOTBILL),(male$TIP/male$TOTBILL),
-        names=c("female",'male'), outline=FALSE,main= "Percent of Tip to Total Bill of Females vs Males") 
-```
-
-
-The boxplots above give us a more detailed picture of the relationships we described above. Smokers and Non smokers share the same median tip percent. However, If you are looking for the opportunity to get a chance at a high tip with respect to bill total, you may acheive that when you get a smoker. On the other hand, you are also more likely to get a lower tip from a smoker. If you want consistency, it is best to serve a non-smoker.
-
-Females and Males also share the same average tip percent. Females will
-
-
 
 
 ```{r, echo = FALSE}
 boxplot((m_smoker$TIP/m_smoker$TOTBILL),(f_smoker$TIP/f_smoker$TOTBILL),
-        names=c("male smoker","female smoker"),outline=FALSE, main= "Percent of Tip to Total Bill of Male Smokers vs Female Smokers") 
+        names=c("male smoker","female smoker"), main= "% Tip of Male Smokers vs Female Smokers") 
 boxplot((m_nsmoker$TIP/m_nsmoker$TOTBILL), (f_nsmoker$TIP/f_nsmoker$TOTBILL), 
-        names=c("male nonsmoker","female nonsmoker"), outline=FALSE,main= "Percent of Tip to Total Bill of Male Non-Smokers vs Female Non-Smokers") 
+        names=c("male nonsmoker","female nonsmoker"),main= "% Tip of Male Non-Smokers vs Female Non-Smokers") 
+
 ```
+
+
+We find interesting differnces in the above graphs. First, by looking at smokers, we can see that females will more consistently tip higher than men. The median percent of men is 15% while it is about 18% for women. On the other hand, for non-smokers, we see that men have a higher tipping rate than women.  
+
 
 ### Research Question 2: 
 
 **When are the best day and times to schedule a shift if you are looking to maximize tips?** 
 
 ```{r, echo = FALSE}
-tips_df = na.omit(tips_df)
+
+tips_df= read.csv("./Data/tips.csv")
+# 
+attach(tips_df)
+tips_df = tips_df[, c("TIP", "DAY", "TIME", "TOTBILL")]
+# # 
+# # 
+
+for(i in 1:ncol(tips_df)){
+  tips_df[is.na(tips_df[,i]), i] <- mean(tips_df[,i], na.rm = TRUE)
+}
+
+outliers <- boxplot((tips_df$TIP), plot=FALSE)$out
+tips_df <- tips_df[-which((tips_df$TIP) %in% outliers),]
+# $TOTBILL) %in% outliers),]
+
+
+
 tipsD = tips_df[TIME == 0,]
 tipsN = tips_df[TIME == 1,]
 
@@ -105,15 +138,17 @@ friD = tipsD[tipsD$DAY==4,]$TIP
 friN = tipsN[tipsN$DAY==4,]$TIP
 satD = tipsD[tipsD$DAY==5,]$TIP
 satN = tipsN[tipsN$DAY==5,]$TIP
-sunD = tipsN[tipsD$DAY==6,]$TIP
+sunD = tipsD[tipsD$DAY==6,]$TIP
 sunN = tipsN[tipsN$DAY==6,]$TIP
 
 data = c(thurD,thurN,friD,friN,satD,satN,sunD,sunN)
+data_count = c(length(thurD),length(thurN),length(friD),length(friN),length(satD),length(satN),length(sunD),length(sunN))
+
 colors = c("lightblue", "darkblue", "lightblue", "darkblue",  "lightblue", "darkblue", "lightblue", "darkblue")
 spacing = c(1,2,4,5,7,8,10,11)
 xLabels = c("Thursday, Day","Thursday, Night", "Friday, Day", "Friday, Night", "Saturday, Day", "Saturday, Night", "Sunday, Day", 'Sunday, Night') 
 
-boxplot(thurD,thurN,friD,friN,satD,satN,sunD,sunN, 
+tip_shifts <- boxplot(thurD,thurN,friD,friN,satD,satN,sunD,sunN, 
         col = colors, 
         at= spacing, 
         names= xLabels,
@@ -122,19 +157,19 @@ boxplot(thurD,thurN,friD,friN,satD,satN,sunD,sunN,
         outline=FALSE, main="Best Time to be Scheduled for a Shift",
       xlab="Shift", ylab="Tip Amount")
 legend("topleft", legend = c("Day Shift","Night Shift"), 
-    col = c("lightblue" ,"darkblue") , bty = "n", pch=20 , pt.cex = 2, cex = .8, horiz = FALSE, inset = c(0.03, 0.01))
+    col = c("lightblue" ,"darkblue") , bty = "n", pch=20 , pt.cex = 2, cex = .6, horiz = FALSE, inset = c(0.03, 0.01))
 
 ```
 
 
 The above boxplots tell us which shifts are optimal for if you desire to earn the most tips. This does not take into account the total bill amount, because if a server soley cares about tips, they will care less about how generous of a tip a party gives and more about the total tips they are able to generate during their shift, reguardless of how much a party's total bill is. 
 
-Looking at this graph, it is clear that that the night shifts (dark blue), are the top three shifts that can be picked up, according to this measure. Interestingly, Saturday and Sunday day shifts did not get any customers, and Thursday night only had one, so, these shift are definitely not desired. Friday was the only day where enough customers came in during both shifts to be able to distunguigh which shift was better, and it is evident that Friday night generates higher tips than Friday day. 
+It appears that the largest range, and total highest tips, comes in mostly on weekend nights. However, Friday and Saturday days have a higher median, but much lower maximum tips compared to their respective nights. This higher range of tips makes sense because people drink more on weekends. As we saw above, smokers, who are commonly associated with drinkers, have a larger spread of tip percentages and will often tip higher than non smokers.
 
-There could be several contributing factors to the weekend getting higher tips than weekdays. One of them is that people often drink on weekends, and people who drink will likely be more generous tippers. Also, adding drinks to a bill will increase the total bill, and as we saw in our above reseaerch question, higher bills usual equate to higher tips. Larger parties on the weekends will also equate to a larger bills, and thus, larger tips. 
+The overall higher averges on weekends than weekday may be attributed to, aside from drinking, larger parties or more expensive means on weekends. Both of these contribute to larger total bills, which as we saw in our previous research question in our initial analysis, larger bill equate to larger tips.
 
-The reason we may see a differnce in day vs night tips is likely, again, the drinking factor- people usually drink more at night than the day. In addition to this, meals at dinner are usually more expensive than lunch, accumulating a higher total, and thus, a higher tip. 
+Ultimately, as a server, if you are looking at the opportunity to make high tips while still guarunteeing a decent tip, Sunday night would be best, followed by Friday night. However, if you are looking for consistency in tipping, you will want to be scheduled for Thursday night or Saturday day as the spread is much tighter, but the median is much higher.
 
-Ultimately, according to this data, the best shifts to schedule to make the most tips are Sunday Night, Friday Night, and Saturday Night, respectively, with Thursday day, coming in a the fourth best option.
+
 
 
