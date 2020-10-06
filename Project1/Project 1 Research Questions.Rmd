@@ -119,12 +119,12 @@ tips_df = tips_df[, c("TIP", "DAY", "TIME", "TOTBILL")]
 # # 
 # # 
 
-for(i in 1:ncol(tips_df)){
-  tips_df[is.na(tips_df[,i]), i] <- mean(tips_df[,i], na.rm = TRUE)
-}
+#for(i in 1:ncol(tips_df)){
+#  tips_df[is.na(tips_df[,i]), i] <- mean(tips_df[,i], na.rm = TRUE)
+#}
 
-outliers <- boxplot((tips_df$TIP), plot=FALSE)$out
-tips_df <- tips_df[-which((tips_df$TIP) %in% outliers),]
+#outliers <- boxplot((tips_df$TIP), plot=FALSE)$out
+#tips_df <- tips_df[-which((tips_df$TIP) %in% outliers),]
 # $TOTBILL) %in% outliers),]
 
 
@@ -165,12 +165,10 @@ legend("topleft", legend = c("Day Shift","Night Shift"),
 
 The above boxplots tell us which shifts are optimal for if you desire to earn the most tips. This does not take into account the total bill amount, because if a server solely cares about tips, they will care less about how generous of a tip a party gives and more about the total tips they are able to generate during their shift, regardless of how much a party's total bill is. 
 
-It appears that the largest range, and total highest tips, comes in mostly on weekend nights. However, Friday and Saturday days have a higher median, but much lower maximum tips compared to their respective nights. This higher range of tips makes sense because people drink more on weekends. As we saw above, smokers, who are commonly associated with drinkers, have a larger spread of tip percentages and will often tip higher than non smokers.
+It appears that the largest range, and total highest tips, comes in mostly on weekend nights. However, Friday days have a higher median, but much lower maximum tips compared to Friday nights.This higher range of tips makes sense because people drink more on weekends. As we saw above, smokers, who are commonly associated with drinkers, have a larger spread of tip percentages and will often tip higher than non smokers.
 
-The overall higher averages on weekends than weekday may be attributed to, aside from drinking, larger parties or more expensive means on weekends. Both of these contribute to larger total bills, which as we saw in our previous research question in our initial analysis, larger bill equate to larger tips.
+Besides higher tipping due to drinking, higher averages on weekends might be attributed to larger parties visiting on the weekend. Since this would raise the total bill, we can expect the total tip to be higher.
 
-Ultimately, as a server, if you are looking at the opportunity to make high tips while still guaranteeing a decent tip, Sunday night would be best, followed by Friday night. However, if you are looking for consistency in tipping, you will want to be scheduled for Thursday night or Saturday day as the spread is much tighter, but the median is much higher.
-
-
+Ultimately, as a server, if you are looking at the opportunity to make high tips while still guaranteeing a decent tip, Sunday night would be best, followed by Friday night. Getting a Thursday night shift, or a satuday and sunday day shift should be avoided due to the (sometimes complete) lack of customers.
 
 
