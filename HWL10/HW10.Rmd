@@ -1,0 +1,175 @@
+---
+title: "HWL10"
+author: "Daniel Briseno Servin"
+date: "12/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(randomForest)
+require(mice)
+require(dplyr)
+require(reshape2)
+require(ggplot2)
+require(EnvStats)
+
+load('./Data/HW6.RData')
+
+```
+
+## Question 1 ##
+
+First we run a simple visualization to get an intuition about the distribution of outliers
+
+```{r}
+ggplot(demo, aes(x=Prof_Score)) + geom_boxplot()
+ggplot(demo, aes(x=Prof_Score)) + geom_histogram()
+
+```
+
+
+Both the Histogram and the Boxplot tell a similar story.
+
+There is one value which can be considered unusally high, with a value of ~1. This datapoint might be safely considered an outlier. 
+
+There is a larger amount of unusually low values. Additionally, these low values are often clustered together (close in value). These low values might indicate a trend in the data which should not be left out of the analysis. However, the number of low outliers is still small when compared to the rest of the data.
+
+Selecting outliers based off of Rosner's test, +/- IQR, and +/- 3SDs gives the following:
+
+- Rosner's Test
+
+```{r}
+outliers_IQR = function(c) {
+  c = na.omit(c)
+  names(c) = NULL
+  quantile_25 = quantile(c)[2]
+  quantile_75 = quantile(c)[4]
+  iqr = (quantile_75-quantile_25)
+  iqr_l = quantile_25-1.5*iqr
+  iqr_u = quantile_75+1.5*iqr
+  w = which(c<iqr_l | c>iqr_u)
+  
+  list(idx = w,
+       val = c[w],
+       mu = mean(c),
+       count = length(w),
+       thres_l = iqr_l,
+       thres_u = iqr_u
+  )
+}
+
+outliers_SD = function(c) {
+  c = na.omit(c)
+  names(c) = NULL
+  sc = scale(c)
+  w = which(abs(sc)>3)
+  
+  list(
+    idx = w,
+    val = c[w],
+    count = length(w),
+    mu = mean(c),
+    thres_l = mean(c)-3*sd(c),
+    thres_u = mean(c)+3*sd(c)
+  )
+}
+
+
+ols_SD = apply(demo[,6,drop=F],2,outliers_SD)
+ols_IQR = apply(demo[,6,drop=F],2,outliers_IQR)  
+
+out = rosnerTest(demo$Prof_Score,20)
+out
+
+```
+
+
+- +/-3SDs:
+
+```{r}
+ols_SD
+```
+
+- +/-IQR:
+
+```{r}
+ols_IQR
+```
+
+Using Rosner's test for outliers, 6 points are labeled as outliers. All of the outliers are extremely low values, and the one high outlier seen in the visualization is kept. Excluding less low outliers from consideration might be good, since there is a cluster of low datapoints which might be informative if left in the analysis.
+
+
+Using +/- 3SDs, we exclude 12 low datapoints from the analysis.
+
+Using +/- IQR, we do exclude the large value of 1.00, but at the cost of exuding all of the low datapoints.
+
+Based off of these observations, I believe that the best approach is to use Rosner's test in order to keep most of the low outliers. Depending on whether the high outlier is likely due to error or a true measured value, it might be best to manually remove it from consideration.
+
+
+
+## 2 ##
+
+First we use summary statistics to determine for which variables NA appear:
+```{r}
+summary(df)
+
+```
+
+Summary statistics determine that we have missing variables in Image_Quality and Smile.
+
+Next we use a random forest algorithm to determine if missing values are MAR or MCAR:
+
+```{r}
+df$IQ_Miss =  factor(ifelse(is.na(df$Image_Quality),1,0))
+df$Smile_Miss =  factor(ifelse(is.na(df$Smile),1,0))
+RFmod = randomForest(IQ_Miss~Gender + Adult + Face_Angle + Image_Color + Image_Type + Context + Multiface +
+                       Race + Area, data=df)
+predictTest = predict(RFmod)
+print('IQ_Miss:')
+sum(df$IQ_Miss != predictTest)/nrow(df)
+prop.table(table(df$IQ_Miss))
+#We can conclude that Image_Quality is likely MCAR
+
+RFmod = randomForest(Smile_Miss~Gender + Adult + Face_Angle + Image_Color + Image_Type + Context + Multiface +
+                       Race + Area, data=df)
+predictTest = predict(RFmod)
+print('Smile_Miss:')
+sum(df$Smile_Miss != predictTest)/nrow(df)
+prop.table(table(df$Smile_Miss))
+# We can conclude that Smile is MCAR
+```
+
+For both Image_Quality and Smile, we see that the the error rate and the NA rate is almost the same. Thus, we can conclude that Image_Quality and Smile are likely MCAR.
+
+
+Next we run a linear regression model predicting area by removing NA listwise.
+```{r}
+df_del = filter(df, IQ_Miss == 0 & Smile_Miss == 0)
+
+del_mod = glm(Area ~ Gender + Adult + Face_Angle + Image_Color +
+      Image_Quality +Image_Type + Context + Multiface + Race + Smile, data=df_del)
+
+summary(del_mod)
+
+```
+
+
+We repeat the same process but with multiple imputation:
+
+```{r}
+df = df %>% select(-IQ_Miss)
+df = df %>% select(-Smile_Miss)
+
+imp = mice(df, maxit =5, family= 'logreg')
+df_complete = complete(imp, action='long', include = TRUE)
+
+df_complete_mids = as.mids(df_complete)
+fitimp = with(df_complete_mids,
+              lm(Area ~ Gender + Adult + Face_Angle + Image_Color +
+                    Image_Quality +Image_Type + Context + Multiface + Race + Smile))
+summary(pool(fitimp))
+
+```
+
+By looking at the standard error, we see that the model performs better with listwise deletion. In principle, we could improve the model with multiple imputation by increasing the number of iterations. However, the listwise deletion model predicts area so well that the extra computation resources can likely not be justified. 

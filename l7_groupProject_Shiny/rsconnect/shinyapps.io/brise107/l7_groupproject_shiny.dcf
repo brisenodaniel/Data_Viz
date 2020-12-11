@@ -1,0 +1,10 @@
+name: l7_groupproject_shiny
+title:
+username:
+account: brise107
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3102826
+bundleId: 3786483
+url: https://brise107.shinyapps.io/l7_groupproject_shiny/
+when: 1603780506.10831

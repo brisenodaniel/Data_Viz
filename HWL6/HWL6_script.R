@@ -1,0 +1,116 @@
+require(devtools)
+require(ggplot2)
+require(reshape2)
+require(dplyr)
+install_github("vancebee/MarkovSCD")
+library(MarkovSCD)
+
+#Load Baseline and Treatment Phase data for one home
+BL = HM2$MassAve[HM2$Phase == "BL"]
+TX = HM2$MassAve[HM2$Phase == "TX"]
+#Define state boundaries
+sb = seq(30,90,10)
+
+# Question 1
+
+cv = dynamicsconv(tseries1 = BL, tseries2 = TX, nitvl = 10,statebounds = sb,lag = 6)
+il1 = cv$ilength1[7]
+il2 = cv$ilength2[7]
+vv = validitycheck(tseries1 = BL, tseries2 = TX, ilength1 = il1,ilength2 = il2,
+                   statebounds = sb,lag = 6)
+
+x_data = c(-4,-3,-2,-1,0,1,2) # define x axis values
+
+h_209 = data.frame(cbind("Norm"=vv$norm, "Iteration Offset from A"=x_data)) #construct dataframe to feed to ggplot
+
+ggplot(data= h_209, aes(y= Norm, x=Iteration.Offset.from.A)) + 
+  geom_line() + 
+  geom_point(size = 3) +
+  scale_x_continuous(breaks = -4:2) +
+  scale_y_continuous(breaks = (5:10)/10) +
+  theme(panel.grid.minor = element_line(size = 0.5), panel.grid.major = element_line(size = 1),
+        axis.title.x = element_text(size=20), axis.title.y = element_text(size=20),
+        axis.text = element_text(size=15, color = "gray42"),
+        plot.title = element_text(hjust=0.5, size=25)) +
+  labs( title = "Home 209", x = "Iteration Offset from A")
+
+
+
+
+#2
+
+q2_df = data.frame(vv$diagconfig)
+colnames(q2_df) = -4:2
+Pos = c(1,0,-1)
+q2_df=cbind(q2_df, Pos)
+q2_df = melt(data=q2_df, id.vars = "Pos")
+
+q2_df = q2_df %>% mutate_if(is.factor, ~as.numeric(levels(.x))[.x]) #code taken from https://community.rstudio.com/t/how-to-convert-factor-data-to-numeric-for-all-dataset/17626/3
+q2_df$Pos = factor(q2_df$Pos, levels = c(-1,1,0))
+levels(q2_df$Pos) = c('-1','+1','0')
+q2_df
+
+
+ggplot(data=q2_df, aes(x=variable,y=value)) + 
+  geom_point(aes(color=factor(Pos)),size=3) + 
+  geom_line(aes(group= factor(Pos),color = factor(Pos))) +
+  scale_x_continuous(breaks = c(-4:2))  +
+  theme(panel.grid.minor = element_line(size = 0.5), panel.grid.major = element_line(size = 1),
+        axis.title.x = element_text(size=20), axis.title.y = element_text(size=20),
+        axis.text = element_text(size=15, color="gray42"),
+        legend.position = c(0.16,0.975), legend.direction = "horizontal", 
+        legend.background = element_rect(fill='transparent'),legend.title = element_text( size = 12, face="bold"),
+        legend.text = element_text(size=12)) +
+  labs(y = "Mean Value", x= "Iteration Offset from A") +
+  scale_color_discrete(name="Pos") 
+
+
+
+#3
+
+le = lageval(tseries = TX,statebounds = sb, lagrange = c(1,2,seq(3,60,3))) 
+q3_df = data.frame(le)
+#make lagrange = (0,10)
+q3_df$lagrange = q3_df$lagrange/6
+
+q3_df = melt(q3_df, id.vars = 'lagrange')
+# rename states
+q3_df$variable = factor(q3_df$variable)
+levels(q3_df$variable) = 1:6
+
+
+ggplot(data = q3_df, aes(x=lagrange, y=value)) +
+  geom_point(aes(shape = variable, color=variable), size=2) +
+  geom_line(aes(group= variable, color= variable))+
+  geom_vline(xintercept = 1, linetype = 'dotted')+
+  scale_y_continuous(breaks = seq(0,1, by=0.25), limits =c(NA,1.005)) +
+  theme(plot.title = element_text(vjust = -7, hjust = .045,size = 20),
+        axis.title.x = element_text(size=20), axis.title.y = element_text(size=20),
+        axis.text = element_text(size=14, color="gray42"),
+        legend.position =c(0.5,0.955), legend.direction = "horizontal", legend.key.size = unit(12,"point"),
+        legend.background = element_rect(fill='transparent'),legend.title = element_text( size = 12)) +
+  labs(title = "b)", x = 'Lag', y = 'Probability', shape= "State", color= "State") 
+
+
+#4
+
+B = transmat(tseries = TX,statebounds = sb,lag = 6) 
+#Turn B into DataFrame
+B_df = data.frame(B$prob)
+#add Source Column
+B_df = cbind(B_df,"SourceBin" = c("S1","S2","S3","S4","S5","S6"))
+
+B_ggplt = melt(B_df,id.vars = "SourceBin") %>% rename("DestBin" = "variable")
+
+#Reverse order of factor variables
+B_ggplt$SourceBin = factor(B_ggplt$SourceBin, levels = rev(levels(B_ggplt$DestBin)))
+
+ggplot(data = B_ggplt, aes(x = DestBin, y = SourceBin)) + 
+  geom_tile(aes(fill = sqrt(value)),color = 'black') +geom_text(aes(label = round(value,digits=2))) +
+  scale_color_gradient(low = "white", high = "orange", aesthetics = "fill", limits = c(0,1)) +
+  theme(plot.title = element_text(size = 15), 
+        axis.title.x = element_text(size = 15, face = "bold"), axis.title.y = element_text(size = 15, face = "bold"),
+        axis.text = element_text(size=14, color="gray42"))+
+  labs( title = "Home 209", fill = "")
+
+                                           
