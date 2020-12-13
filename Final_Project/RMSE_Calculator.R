@@ -3,8 +3,8 @@
 #     rmse_subset_data_train_v
 
 #### The following variables are for increased data efficiency
-NEW_MOD <- TRUE
-SAVED_RMSE <- 0
+NEW_MOD <- TRUE #Flag indicating if new control model has been set
+control_rmse <- 0
 
 
 #Helper function, turns list of df with same columns into
@@ -42,110 +42,64 @@ model_retrain <- function(data, subset, control_model, retrain, label){
 }
 
 
+
 #function to calculate rmse for given subset and training data
 rmse_subset <- function(data, 
                         subset,
                         mod_control, 
                         retrain,
-                        size_adj,
                         label = 'critical_temp'){
+  #obtain testing data partition for subset of interest
+  data_test <- intersect(data,subset) 
+  #if retrain=T, retrain model only on training data also present in subset 
+  mod_test <- model_retrain(data, subset, mod_control, retrain, label)
   
-  
-  data_test <- intersect(data,subset)
-  
-  #Retrain model if necessary
-  mod_test <- NULL
-  if (retrain){
-    data_train <- intersect(train,subset)
-    data_train <- setdiff(data_train, data_test)
-    if(nrow(data_train)==0){
-      warnings("NO DATA IN SUBSET AVAILABLE TO TRAIN MODEL")
-      warnings("WILL NOT RETRAIN MODEL THIS RUN")
-    }
-    else{
-      mod_test <- trainer(data_train,label)
-      rm(data_train)
-    }
+  #obtain RMSE values for control and test models and data
+  if (NEW_MOD){ #only compute control RMSE if control model or control data
+                  #have changed or been set for the first time
+    NEW_MOD <<- FALSE
+    control_rmse <<- rmse_funct(mod_control,data,label)
   }
-  else{
-    mod_test <- mod_control
-  }
-  
-  #extract control rmse  
-  #obtain data partition for control rmse
-  data_control = NULL
-  if (size_adj){
-  control_idx <- sample(1:nrow(data),size = nrow(data_test))
-  data_control <- data[control_idx,]
-  }
-  else data_control <- data
-  #extract test and control rmse
-  test_rmse <- err_funct(mod_test,data_test,label)
-  control_rmse <- err_funct(mod_control, data_control,label) 
-  return(c('test'=test_rmse, 'control' = control_rmse))
+  #compute error statistics for test model and data
+  test_err <- err_stats(mod_test,data_test,label)
+  return(c(test_err, 'control' = control_rmse))
 }
 
-
-# Sanity check
-
-
-#v <- c(c('test' = 4, 'control' = 6), c('test'= 1,'control' = 2),c('test'=9,'control'=10))
-#data.frame(t(v))
-#as.matrix(t(v))
-
-#rmse_subset(train,cu_train,bst)
 
 #function to calculate rmse vectors for given data subsets and training data
 rmse_subset_vector <- function(data,
                                subset_vect, 
                                model, 
                                label = 'critical_temp',
-                               retrain=FALSE,
-                               size_adj = TRUE){
+                               retrain=FALSE){
   
   rmse_subset_partial <- function(subset) rmse_subset(data, 
                                                       subset, 
                                                       model, 
                                                       retrain, 
-                                                      label=label,
-                                                      size_adj = size_adj)
-  rmse_vec <- vapply(subset_vect, rmse_subset_partial,c('test' = 0, 'control' = 0))
-  rmse_vec <- cbind( t(rmse_vec), 'subset' = names(subset_vect) )
+                                                      label=label)
+  #assemble template return value vector for err_subset
+  template_vector <- c(
+    'test' = 0,
+    'ave_err' = 0,
+    'std_err' = 0,
+    'under_cnt' = 0,
+    'over_cnt' = 0,
+    'correct_cnt' = 0,
+    'ave_under' = 0,
+    'std_under' = 0,
+    'ave_over' = 0,
+    'std_over' = 0,
+    'control' = 0
+  )
+  
+  rmse_vec <- vapply(subset_vect, rmse_subset_partial, c(template_vector))
+  rmse_vec <- cbind( t(rmse_vec), 'subset' = names(subset_vect) ) #TODO: might cause issues
   return( rmse_vec)
-#  return( data.frame( rmse_vec ) )
 }
-# sanity_check
 
-# #subsets <- list('cu' = cu_train, 'fe' = fe_train, 'mg' = mg_train)
-# names(subsets)
-# head(subsets)
-# tf <- function(x) deparse(substitute(x))
-# lapply(subsets,tf)
-# names(subsets)
-# 
-# 
-# 
-# system.time(
-#   {
-#    partitions <- partition(train,2/3)
-#    train_df <- partitions[['train']]
-#    test_df <- partitions[['test']]
-#    bst <- trainer(train_df,'critical_temp')
-# df <- rmse_subset_vector(test_df,
-#                          subsets,
-#                          bst, 
-#                          retrain = TRUE,
-#                          size_adj = FALSE)
-# #}
-# # )
-# 
-# 
-# df <- data.frame(df)
-# rownames(df)
-# df <- rbind(df,df)
-# class(df)
-
- rmse_subset_1trial <- function(subset, trial_num, ntrials, retrain, size_adj){
+ rmse_subset_1trial <- function(subset, trial_num, ntrials, retrain){
+   NEW_MOD <<- TRUE
    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
    print(sprintf("Trial ", trial_num,"/",ntrials))
    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
@@ -153,30 +107,44 @@ rmse_subset_vector <- function(data,
    train_df <- partitions[['train']]
    test_df <- partitions[['test']]
    mod <- trainer(train,'critical_temp')
-   return( rmse_subset_vector(test_df, subset, mod, retrain=retrain, size_adj = size_adj)  )
+   return( rmse_subset_vector(test_df, subset, mod, retrain = retrain)  )
  }
 
  #Function calculates 50 iterations of rmse values for subsets
- rmse_subset_ntrials <- function(subsets, ntrials = 50, retrain = FALSE, size_adj = FALSE){
+ rmse_subset_ntrials <- function(subsets, ntrials = 50, retrain = FALSE){
    trials <- 1:ntrials
-   rmse_partial <- function(x) rmse_subset_1trial(subsets,x,ntrials,retrain, size_adj)
+   rmse_partial <- function(x) rmse_subset_1trial(subsets,x,ntrials,retrain)
    return(lapply(trials,rmse_partial))
  }
-#  
- 
-rmse_subset_ntrials_as_df <- function(subsets, ntrials=50, retrain = FALSE, size_adj = FALSE) {
-  rmse_df <- rmse_subset_ntrials(subsets, ntrials, retrain, size_adj)
+
+#same functionaity as rmse_subset_ntrials, but return value is a single 
+ #dataframe instead of a list of dataframes
+rmse_subset_ntrials_as_df <- function(subsets, ntrials=50, retrain = FALSE){
+  rmse_df <- rmse_subset_ntrials(subsets, ntrials, retrain)
   return( condense(rmse_df))
 }
 
-system.time({
- df <- rmse_subset_ntrials(elemental_subsets,2)
- # length(df)
- #  rbind(df[[1]], df[[2]])
- #  empty_df <- data.frame()
- #  rbind(empty_df,df[[1]])
-})
-rmse_subset_ntrials_as_df(elemental_subsets,2)
 
-# lst <- list(1,2,3)
-# names(lst) <- c(1,2,3)
+################################## Raw Error Collection ####################################
+ 
+# #collects raw error vector for given subset 
+ raw_err_collector <- function(model,subsets){
+  err_vect_partial <- function(subset) err_vect(model,subset)
+  return(lapply(subsets,err_vect_partial))
+ }
+
+
+#deciles_err <- raw_err_collector(bst, deciles)
+
+
+
+
+
+
+
+
+
+
+
+
+

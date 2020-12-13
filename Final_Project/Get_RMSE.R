@@ -1,8 +1,11 @@
 
+source('Data_Splitter.R')
+source('Model_Trainer.R')
+source('RMSE_Calculator.R')
 
 
-
-
+#full set of err vects
+control_df <- rmse_subset_ntrials_as_df(list('trn'=train),2)
 
 system.time({
 ###### Get RMSE Data by Element Subsets
@@ -30,3 +33,19 @@ deciles <- lapply(train_deciles,filt)
 names(deciles) <- c(1:10)
 decile_rmse <- rmse_subset_ntrials_as_df(deciles,2)
 })
+
+elemental_rmse_no_retrain
+elemental_rmse_retrained
+quartile_rmse
+decile_rmse
+
+
+########################## Get Error Vectors ##################
+
+
+train_fe <- intersect(part$test,fe_train)
+part <- partition(train,2/3)
+nrow(part$test)
+
+661+142
+nrow(train_fe)
