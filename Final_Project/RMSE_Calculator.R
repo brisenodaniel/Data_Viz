@@ -124,6 +124,23 @@ rmse_subset_ntrials_as_df <- function(subsets, ntrials=50, retrain = FALSE){
   return( condense(rmse_df))
 }
 
+err_output_quartiles_1trial <- function(trial){
+  partitions <- partition(train,2/3)
+  train_df <- partitions[['train']]
+  test_df <- partitions[['test']]
+  mod <- trainer(train,'critical_temp')
+  err_df <- err_stats_quantiles(mod,test_df) %>%
+            mutate('Trial' = c(trial,trial,trial,trial))
+  return(err_df)
+}
+
+err_output_quartiles_ntrials <- function(trials = 50){
+  trials <- 1:trials
+  err_lst <- lapply(trials,err_output_quartiles_1trial)
+  return( condense(err_lst))
+}
+
+
 
 ################################## Raw Error Collection ####################################
  
@@ -134,9 +151,136 @@ rmse_subset_ntrials_as_df <- function(subsets, ntrials=50, retrain = FALSE){
  }
 
 
-#deciles_err <- raw_err_collector(bst, deciles)
+#rmse calculating function
+rmse_funct <- function(mod, full_m,label = 'critical_temp'){
+  test_m <- full_m %>% select(-label)
+  actual_ct <- full_m %>% select(label)
+  pred <- predict_vector(mod,test_m)
+  return( rmse(as.numeric(t(actual_ct)), pred) )
+}
+
+#full error stats calculating function
+err_stats <- function(mod, full_m, label = 'critical_temp'){
+  #obtain prediction on test data
+  test_m <- full_m %>% select(-label)
+  actual_ct <- full_m %>% select(label)
+  pred <- predict_vector(mod,test_m)
+  
+  return(pred_err_stats(pred,actual_ct))
+}
 
 
+# obtain summary error rate statistics for given prediction vector
+pred_err_stats <- function(pred, actual){
+  #obtain rmse
+  rmse_full <- rmse(as.numeric(t(actual)), pred)
+  
+  #obtain mean error and std of error
+  raw_diff <- t(pred - actual)
+  ave_err <- mean(raw_diff)
+  std_err <- std(raw_diff)
+  
+  
+  #obtain count of over and under prediction
+  under_pred <- raw_diff[raw_diff<0]
+  over_pred <- raw_diff[raw_diff>0]
+  exact_pred <- raw_diff[raw_diff == 0]
+  under_cnt <- length(under_pred)
+  over_cnt <- length(over_pred)
+  
+  #obtain number of exact predictions
+  correct_cnt <- length(exact_pred)
+  
+  
+  #obtain mean and std over_estimation
+  ave_over <- mean(over_pred)
+  std_over <- std(over_pred)
+  
+  #obtain mean and std under_estimation
+  ave_under <- mean(under_pred)
+  std_under <- std(under_pred)
+  
+  #assemble return vector
+  ret_vect <- c(
+    'test' = rmse_full,
+    'ave_err' = ave_err,
+    'std_err' = std_err,
+    'under_cnt' = under_cnt,
+    'over_cnt' = over_cnt,
+    'correct_cnt' = correct_cnt,
+    'ave_under' = ave_under,
+    'std_under' = std_under,
+    'ave_over' = ave_over,
+    'std_over' = std_over
+  )
+  return(ret_vect)
+}
+
+#obtain summary error rate statistics for outpt divided by predicted critical_temp 
+# quartiles
+err_stats_quantiles <- function(mod, full_m, label = 'critical_temp'){
+  #obtain prediction vector
+  test_m <- full_m %>% select(-label)
+  actual_ct <- full_m %>% select(label)
+  pred <- predict_vector(mod,test_m)
+  pred <- data.frame(pred)
+  
+  #attach actual ct values
+  pred <- mutate(pred, actual = actual_ct)
+  
+  #partition into quartiles
+  pred <- pred %>% mutate(quartile = ntile(pred,4))
+  
+  q1 <- pred %>% 
+    filter(quartile==1) %>%
+    select(-quartile)
+  q2 <- pred %>% 
+    filter(quartile==2) %>%
+    select(-quartile)
+  q3 <- pred %>% 
+    filter(quartile==3) %>%
+    select(-quartile)
+  q4 <- pred %>% 
+    filter(quartile==4) %>%
+    select(-quartile)
+  rm(pred)
+  
+  
+  #separate true values from predicted values
+  q1_pred <- q1 %>% select(-actual)
+  q1_actual <- q1 %>% select(actual)
+  
+  q2_pred <- q2 %>% select(-actual)
+  q2_actual <- q2 %>% select(actual)
+  
+  q3_pred <- q3 %>% select(-actual)
+  q3_actual <- q3 %>% select(actual)
+  
+  q4_pred <- q4 %>% select(-actual)
+  q4_actual <- q4 %>% select(actual)
+  
+  #convert from df to matrix
+  q1_pred <- as.matrix(q1_pred)
+  q2_pred <- as.matrix(q2_pred)
+  q3_pred <- as.matrix(q3_pred)
+  q4_pred <- as.matrix(q4_pred)
+  
+  #predict err stats for quartiles
+  q1_stats <- data.frame( t(pred_err_stats(q1_pred, q1_actual)))
+  q2_stats <- data.frame(t(pred_err_stats(q2_pred, q2_actual)))
+  q3_stats <- data.frame(t(pred_err_stats(q3_pred, q3_actual)))
+  q4_stats <- data.frame(t(pred_err_stats(q4_pred, q4_actual)))
+  
+  #contruct quartile dataframe
+  q_df <- t(list(q1_stats, q2_stats,q3_stats,q4_stats))
+  q_df <- condense( t(q_df))
+  colnames(q_df) <- names(q1_stats)
+  
+  #add quartile tag
+  quar <- 1:4
+  q_df <- q_df %>% mutate('quartile' = quar)
+  return(q_df)
+}
 
 
 

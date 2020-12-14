@@ -1,6 +1,6 @@
 rm(list = ls())
 library(dplyr)
-library(purrr)
+require(stringr)
 load('./Data/tc.RData')
 
 
@@ -23,31 +23,19 @@ cutter <- function( elem_list, exclusive = FALSE){
 fe_train <- data.frame(cutter('Fe')[1])
 fe_unique_m <- data.frame(cutter('Fe')[2])
 
-# ############################# Elements with no Iron
-# no_fe_train <- data.frame(cutter('Fe', exclusive = TRUE)[1])
-# no_fe_unique_m <- data.frame(cutter('Fe',exclusive= TRUE)[2])
-
-
 ############################ Elements with Mercury 
 hg_train <- data.frame(cutter('Mg')[1])
 hg_unique_m <- data.frame(cutter('Mg')[2])
-# 
-# ########################### Elements with no Mercury
-# no_hg_train <- data.frame(cutter('Hg', exclusive = TRUE)[1])
-# no_hg_unique_m <- data.frame(cutter('Hg', exclusive = TRUE)[2])
-
 
 ############################# Cuprates 
 cu_train <- data.frame(cutter('Cu')[1])
 cu_unique_m <- data.frame(cutter('Cu')[2])
 
-
-
-# ############################# Non-Cuprates
-# no_cu_train <- data.frame(cutter('Cu', exclusive = TRUE)[1])
-# no_cu_unique_m <- data.frame(cutter('Cu', exclusive = TRUE)[2])
-# 
-
+########################## B2Mg
+rx <- regex('.*B2.*Mg.*',dotall=TRUE)
+b2mg_train <- train %>% filter(str_detect(unique_m$material,rx))
+b2mg_unique_m <- unique_m %>% filter(str_detect(unique_m$material,rx))
+b2mg_unique_m$material
 ######################### Split By Tc Quantile #######################
 
 

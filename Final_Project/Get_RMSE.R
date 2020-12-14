@@ -1,43 +1,39 @@
-
 source('Data_Splitter.R')
 source('Model_Trainer.R')
 source('RMSE_Calculator.R')
 
-
-#full set of err vects
-control_df <- rmse_subset_ntrials_as_df(list('trn'=train),2)
-
 system.time({
-###### Get RMSE Data by Element Subsets
+  
+####### full set of err vects
+control_err <- rmse_subset_ntrials_as_df(list('trn'=train),2)
+saveRDS(control_err, file = 'control_err.rds')
 
-elemental_subsets <- list(fe_train, hg_train, cu_train)
-names(elemental_subsets) = c('Fe','Hg','Cu')
-
-elemental_rmse_no_retrain <- rmse_subset_ntrials_as_df(elemental_subsets,2)
-
+###### Get RMSE Data by Element Subsets with no retraining
+elemental_subsets <- list(fe_train, hg_train, cu_train, b2mg_train)
+names(elemental_subsets) = c('Fe','Hg','Cu' ,'B2Mg')
+elemental_err_no_retrain <- rmse_subset_ntrials_as_df(elemental_subsets,2)
+saveRDS(elemental_err_no_retrain, file = 'elemental_err_n_rt.rds')
 ###### Get RMSE Data by Element Subsets with retraining 
-
-elemental_rmse_retrained <- rmse_subset_ntrials_as_df(elemental_subsets,2,retrain = TRUE)
-
+elemental_err_retrained <- rmse_subset_ntrials_as_df(elemental_subsets,2,retrain = TRUE)
+saveRDS(elemental_err_retrained, file = 'elemental_err_rt')
 ###### Get RMSE Data by Quartile
 filt <- function(x) subset(x,select = -c(decile, quartile))
 quartiles <- lapply(train_quartiles,filt)
 names(quartiles) <- c(1:4)
-quartile_rmse <- rmse_subset_ntrials_as_df(quartiles,2)
-
-
-
+quartile_err <- rmse_subset_ntrials_as_df(quartiles,2)
+saveRDS(quartile_err, file = 'quartile_err.rds')
 
 ###### Get RMSE Data by Decile
 deciles <- lapply(train_deciles,filt)
 names(deciles) <- c(1:10)
-decile_rmse <- rmse_subset_ntrials_as_df(deciles,2)
+decile_err <- rmse_subset_ntrials_as_df(deciles,2)
+saveRDS(decile_err, file = 'decile_err.rds')
+
+##### Get Error Statistics by output quartile
+output_quartile_errs <- err_output_quartiles_ntrials(2)
+saveRDS(output_quartile_errs, file = 'output_quartile_errs')
 })
 
-elemental_rmse_no_retrain
-elemental_rmse_retrained
-quartile_rmse
-decile_rmse
 
 
 ########################## Get Error Vectors ##################
@@ -45,6 +41,7 @@ decile_rmse
 
 train_fe <- intersect(part$test,fe_train)
 part <- partition(train,2/3)
+bst <- trainer(part$train,'critical_temp')
 nrow(part$test)
 
 661+142
