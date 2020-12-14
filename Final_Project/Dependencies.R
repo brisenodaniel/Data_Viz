@@ -6,6 +6,6 @@ pacman::p_load(dplyr,
                 Matrix,
                 Metrics)
 
-#Prepare Global Enviornment
+#Prepare Global Environment
 rm(list = ls())
 load('./Data/tc.RData')
