@@ -1,7 +1,4 @@
-library(xgboost)
-library(Matrix)
-require(dplyr)
-require(Metrics)
+
 #################### Training Function ####################
 trainer <- function(training_data, label, nthreads=4){
   label_values <- as.matrix(training_data %>% select(label))

@@ -1,8 +1,3 @@
-rm(list = ls())
-library(dplyr)
-require(stringr)
-load('./Data/tc.RData')
-
 
 ########################### Split by Element #################################################
 cutter <- function( elem_list, exclusive = FALSE){

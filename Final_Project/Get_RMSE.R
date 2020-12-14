@@ -1,3 +1,4 @@
+source('Dependencies.R')
 source('Data_Splitter.R')
 source('Model_Trainer.R')
 source('RMSE_Calculator.R')
@@ -35,14 +36,3 @@ saveRDS(output_quartile_errs, file = './Output/output_quartile_errs.rds')
 })
 
 
-
-########################## Get Error Vectors ##################
-
-
-train_fe <- intersect(part$test,fe_train)
-part <- partition(train,2/3)
-bst <- trainer(part$train,'critical_temp')
-nrow(part$test)
-
-661+142
-nrow(train_fe)
