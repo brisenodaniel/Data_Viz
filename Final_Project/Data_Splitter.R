@@ -14,7 +14,7 @@ cutter <- function( elem_list, exclusive = FALSE){
 }
 
 
-############################ Elements with Iron 
+############################ Elements with Iron
 fe_train <- data.frame(cutter('Fe')[1])
 fe_unique_m <- data.frame(cutter('Fe')[2])
 
@@ -55,7 +55,7 @@ train_quartiles <- lapply(c(1:4), flt)
 flt <- function(x) filter(unique_m, train_tile$quartile==x)
 unique_m_quartiles <- lapply(c(1:4),flt)
 
-
+rm(train_tile)
 ####################### Test and Training Data Functions
 
 partition <- function(data, train_partition){
