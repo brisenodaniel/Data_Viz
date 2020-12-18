@@ -7,7 +7,10 @@ pacman::p_load(dplyr,
                 stringr,
                 xgboost,
                 Matrix,
-                Metrics)
+                Metrics,
+               tidyverse,
+               gridExtra,
+               cowplot)
 
 #Prepare Global Environment
 rm(list = ls())
